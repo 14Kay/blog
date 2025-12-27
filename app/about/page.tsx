@@ -3,6 +3,9 @@ import CopyButton from '@/components/CopyButton';
 export default function AboutPage() {
   return (
     <div className="about max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <h1 className="text-2xl sm:text-2xl font-bold mb-2 sm:mb-4">
+        <span className='uppercase'>Talk is cheap. Show me the code. 💻</span>
+      </h1>
       <div className="space-y-4">
         {/* 自我介绍 */}
         <section className="bg-white dark:bg-gray-800/50 rounded-lg p-6">
