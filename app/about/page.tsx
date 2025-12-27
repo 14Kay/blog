@@ -1,14 +1,62 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
 import CopyButton from '@/components/CopyButton';
 
 export default function AboutPage() {
+  const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const sections = containerRef.current.querySelectorAll('.about-section');
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const sectionIndex = entry.target.getAttribute('data-section-index');
+              if (sectionIndex !== null) {
+                setVisibleSections((prev) => new Set(prev).add(parseInt(sectionIndex)));
+              }
+            }
+          });
+        },
+        { threshold: 0.1, rootMargin: '50px' }
+      );
+
+      let visibleIndex = 0;
+      sections.forEach((section) => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          const sectionIndex = section.getAttribute('data-section-index');
+          if (sectionIndex !== null) {
+            setTimeout(() => {
+              setVisibleSections((prev) => new Set(prev).add(parseInt(sectionIndex)));
+            }, visibleIndex * 100);
+            visibleIndex++;
+          }
+        } else {
+          observer.observe(section);
+        }
+      });
+
+      return () => observer.disconnect();
+    }
+  }, []);
+
   return (
-    <div className="about max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <div className="about max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8" ref={containerRef}>
       <h1 className="text-2xl sm:text-2xl font-bold mb-2 sm:mb-4">
         <span className='uppercase'>Talk is cheap. Show me the code. 💻</span>
       </h1>
       <div className="space-y-4">
         {/* 自我介绍 */}
-        <section className="bg-white dark:bg-gray-800/50 rounded-lg p-6">
+        <section
+          data-section-index={0}
+          className={`about-section bg-white dark:bg-gray-800/50 rounded-lg p-6 transition-all duration-800 ${
+            visibleSections.has(0) ? 'post-visible' : 'post-hidden'
+          }`}
+        >
           <h2 className="text-xl font-semibold mb-3">👋 自我介绍</h2>
           <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
             你好！我是一名热爱技术的开发者，专注于 Web 开发和开源贡献。
@@ -17,7 +65,12 @@ export default function AboutPage() {
         </section>
 
         {/* 技术栈 */}
-        <section className="bg-white dark:bg-gray-800/50 rounded-lg p-6">
+        <section
+          data-section-index={1}
+          className={`about-section bg-white dark:bg-gray-800/50 rounded-lg p-6 transition-all duration-800 ${
+            visibleSections.has(1) ? 'post-visible' : 'post-hidden'
+          }`}
+        >
           <h2 className="text-xl font-semibold mb-3">🛠️ 技术栈</h2>
           <div className="space-y-4">
             <div>
@@ -48,7 +101,12 @@ export default function AboutPage() {
         </section>
 
         {/* 开源项目 */}
-        <section className="bg-white dark:bg-gray-800/50 rounded-lg p-6">
+        <section
+          data-section-index={2}
+          className={`about-section bg-white dark:bg-gray-800/50 rounded-lg p-6 transition-all duration-800 ${
+            visibleSections.has(2) ? 'post-visible' : 'post-hidden'
+          }`}
+        >
           <h2 className="text-xl font-semibold mb-3">🚀 开源项目</h2>
           <div className="space-y-3">
             <div className="border-l-4 border-blue-500 pl-4">
@@ -83,7 +141,12 @@ export default function AboutPage() {
         </section>
 
         {/* 联系方式 */}
-        <section className="bg-white dark:bg-gray-800/50 rounded-lg p-6">
+        <section
+          data-section-index={3}
+          className={`about-section bg-white dark:bg-gray-800/50 rounded-lg p-6 transition-all duration-800 ${
+            visibleSections.has(3) ? 'post-visible' : 'post-hidden'
+          }`}
+        >
           <h2 className="text-xl font-semibold mb-3">📬 联系方式</h2>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
