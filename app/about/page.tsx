@@ -59,8 +59,8 @@ export default function AboutPage() {
         >
           <h2 className="text-xl font-semibold mb-3">👋 自我介绍</h2>
           <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-            你好！我是一名热爱技术的开发者，专注于 Web 开发和开源贡献。
-            喜欢探索新技术，分享学习心得，用代码创造有价值的产品。
+            你好！我是14K，一名前端开发者，专注于 Web 开发和开源贡献。
+            热衷于探索前沿技术，通过代码解决实际问题，创造有价值的产品。
           </p>
         </section>
 
@@ -176,7 +176,7 @@ export default function AboutPage() {
             <div className="flex items-center gap-2">
               <span className="text-gray-600 dark:text-gray-400">QQ:</span>
               <a href="http://wpa.qq.com/msgrd?v=3&uin=619113277&site=qq&menu=yes" className="text-blue-500 hover:underline" target='_blank'>
-                @14K(619113277)
+                619113277
               </a>
             </div>
             <div className="flex items-center gap-2">
