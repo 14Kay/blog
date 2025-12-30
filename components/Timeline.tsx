@@ -66,18 +66,27 @@ export default function Timeline({ posts }: TimelineProps) {
 
   useEffect(() => {
     if (containerRef.current) {
-      const images = containerRef.current.querySelectorAll('img');
+      const container = containerRef.current;
+
+      // Event delegation for image clicks
+      const handleClick = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        if (target.tagName === 'IMG') {
+          const img = target as HTMLImageElement;
+          setSelectedImage(img.src);
+        }
+      };
+      container.addEventListener('click', handleClick);
+
+      const images = container.querySelectorAll('img');
       images.forEach(img => {
         img.loading = 'lazy';
         img.style.cursor = 'pointer';
         img.style.marginTop = '1rem';
         img.style.marginBottom = '1rem';
-        img.onclick = () => {
-          setSelectedImage(img.src);
-        };
       });
 
-      const postCards = containerRef.current.querySelectorAll('.post-card');
+      const postCards = container.querySelectorAll('.post-card');
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
@@ -110,7 +119,10 @@ export default function Timeline({ posts }: TimelineProps) {
         }
       });
 
-      return () => observer.disconnect();
+      return () => {
+        container.removeEventListener('click', handleClick);
+        observer.disconnect();
+      };
     }
   }, [posts]);
 
