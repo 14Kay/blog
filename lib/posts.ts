@@ -27,7 +27,6 @@ export async function getAllPosts(): Promise<Post[]> {
         const id = fileName.replace(/\.md$/, '');
         const fullPath = path.join(postsDirectory, fileName);
         const fileContents = fs.readFileSync(fullPath, 'utf8');
-        const stats = fs.statSync(fullPath);
         const matterResult = matter(fileContents);
         const processedContent = await remark()
           .use(remarkGfm)
@@ -44,16 +43,10 @@ export async function getAllPosts(): Promise<Post[]> {
           .process(matterResult.content);
         const content = processedContent.toString();
 
-        const publishDate = new Date(matterResult.data.date);
-        const modifiedDate = stats.mtime;
-        const edited = Math.abs(modifiedDate.getTime() - publishDate.getTime()) > 60000
-          ? modifiedDate.toISOString()
-          : undefined;
-
         return {
           id,
           date: matterResult.data.date,
-          edited,
+          edited: matterResult.data.edited,
           content,
         };
       })
