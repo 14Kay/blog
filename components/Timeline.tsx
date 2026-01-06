@@ -16,9 +16,21 @@ function getTimeAgo(dates: string): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 60) return `${diffMins}分钟前`;
-  if (diffHours < 24) return `${diffHours}小时前`;
-  return `${diffDays}天前`;
+  if (diffMins < 60) return `${diffMins} 分钟前`;
+  if (diffHours < 24) return `${diffHours} 小时前`;
+  return `${diffDays} 天前`;
+}
+
+function formatDateTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+  const weekday = weekdays[date.getDay()];
+  return `${year}-${month}-${day} ${hours}:${minutes} 周${weekday}`;
 }
 
 export default function Timeline({ posts }: TimelineProps) {
@@ -53,7 +65,13 @@ export default function Timeline({ posts }: TimelineProps) {
             <span>·</span>
             <span>{getTimeAgo(post.date)}</span>
             <span className="hidden sm:inline">·</span>
-            <span className="hidden sm:inline">{new Date(post.date).toLocaleString('zh-CN')}</span>
+            <span className="hidden sm:inline">{formatDateTime(post.date)}</span>
+            {post.edited && (
+              <>
+                <span className="hidden sm:inline">·</span>
+                <span className="hidden sm:inline">编辑于 {formatDateTime(post.edited)}</span>
+              </>
+            )}
           </div>
           <div
             className="prose prose-sm dark:prose-invert max-w-none leading-6 text-sm"
