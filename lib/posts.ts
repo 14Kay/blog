@@ -19,38 +19,43 @@ export interface Post {
 const postsDirectory = path.join(process.cwd(), 'data');
 
 export async function getAllPosts(): Promise<Post[]> {
-  const fileNames = fs.readdirSync(postsDirectory);
-  const allPostsData = await Promise.all(
-    fileNames
-      .filter(fileName => fileName.endsWith('.md'))
-      .map(async (fileName) => {
-        const id = fileName.replace(/\.md$/, '');
-        const fullPath = path.join(postsDirectory, fileName);
-        const fileContents = fs.readFileSync(fullPath, 'utf8');
-        const matterResult = matter(fileContents);
-        const processedContent = await remark()
-          .use(remarkGfm)
-          .use(remarkMath)
-          .use(remarkRehype)
-          .use(rehypeKatex)
-          .use(rehypePrettyCode, {
-            theme: {
-              light: 'one-light',
-              dark: 'github-dark',
-            },
-          })
-          .use(rehypeStringify)
-          .process(matterResult.content);
-        const content = processedContent.toString();
+  try {
+    const fileNames = fs.readdirSync(postsDirectory);
+    const allPostsData = await Promise.all(
+      fileNames
+        .filter(fileName => fileName.endsWith('.md'))
+        .map(async (fileName) => {
+          const id = fileName.replace(/\.md$/, '');
+          const fullPath = path.join(postsDirectory, fileName);
+          const fileContents = fs.readFileSync(fullPath, 'utf8');
+          const matterResult = matter(fileContents);
+          const processedContent = await remark()
+            .use(remarkGfm)
+            .use(remarkMath)
+            .use(remarkRehype)
+            .use(rehypeKatex)
+            .use(rehypePrettyCode, {
+              theme: {
+                light: 'one-light',
+                dark: 'github-dark',
+              },
+            })
+            .use(rehypeStringify)
+            .process(matterResult.content);
+          const content = processedContent.toString();
 
-        return {
-          id,
-          date: matterResult.data.date,
-          edited: matterResult.data.edited,
-          content,
-        };
-      })
-  );
+          return {
+            id,
+            date: matterResult.data.date,
+            edited: matterResult.data.edited,
+            content,
+          };
+        })
+    );
 
-  return allPostsData.sort((a, b) => (a.date < b.date ? 1 : -1));
+    return allPostsData.sort((a, b) => (a.date < b.date ? 1 : -1));
+  } catch (error) {
+    console.error('读取文章数据失败:', error);
+    return [];
+  }
 }
