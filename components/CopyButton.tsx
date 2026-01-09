@@ -14,7 +14,7 @@ export default function CopyButton({ text }: CopyButtonProps) {
       await navigator.clipboard.writeText(text);
       setStatus('success');
       setTimeout(() => setStatus('idle'), 2000);
-    } catch (err) {
+    } catch {
       setStatus('error');
       setTimeout(() => setStatus('idle'), 2000);
     }
