@@ -1,5 +1,11 @@
-import { getAllSongs } from '@/lib/songs';
-import SongList from '@/components/SongList';
+import { getAllSongs } from '@/lib/songs'
+import SongList from '@/components/SongList'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+	title: '我的歌单 | 14K',
+	description: 'Life is cheap. Show me the music. 分享我喜欢的音乐',
+}
 
 export default async function SongsPage() {
   const songs = await getAllSongs();

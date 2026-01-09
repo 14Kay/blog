@@ -15,9 +15,32 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "14K | Life & Music",
-  description: "记录生活，分享音乐",
-};
+	title: {
+		default: '14K | Life & Music',
+		template: '%s | 14K',
+	},
+	description: '记录生活，分享音乐',
+	keywords: ['博客', '前端开发', '音乐', 'Next.js', 'React', 'TypeScript'],
+	authors: [{ name: '14K', url: 'https://github.com/14Kay' }],
+	creator: '14K',
+	openGraph: {
+		type: 'website',
+		locale: 'zh_CN',
+		url: 'https://blog.14kay.top',
+		title: '14K | Life & Music',
+		description: '记录生活，分享音乐',
+		siteName: '14K',
+	},
+	twitter: {
+		card: 'summary',
+		title: '14K | Life & Music',
+		description: '记录生活，分享音乐',
+	},
+	robots: {
+		index: true,
+		follow: true,
+	},
+}
 
 export default function RootLayout({
   children,
