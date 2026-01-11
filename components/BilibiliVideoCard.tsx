@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { SquareUser, SquarePlay } from 'lucide-react'
 import { BilibiliVideoData } from '@/lib/bilibili'
 
 interface BilibiliVideoCardProps {
@@ -31,7 +32,7 @@ export default function BilibiliVideoCard({ video }: BilibiliVideoCardProps) {
 			href={`https://www.bilibili.com/video/${video.bvid}`}
 			target="_blank"
 			rel="noopener noreferrer"
-			className="flex gap-3 p-3 bg-gray-50 dark:bg-gray-800/30 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors my-4 no-underline"
+			className="flex gap-3 p-3 bg-gray-50 dark:bg-gray-800/30 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors mt-2 no-underline"
 		>
 			{/* 左侧封面 */}
 			<div className="relative flex-shrink-0 w-40 h-24 rounded overflow-hidden">
@@ -59,10 +60,16 @@ export default function BilibiliVideoCard({ video }: BilibiliVideoCardProps) {
 						</p>
 					)}
 				</div>
-				<div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-					<span>{video.owner.name}</span>
+				<div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+					<span className="flex items-center gap-1">
+						<SquareUser className="w-[14px] h-[14px]" />
+						{video.owner.name}
+					</span>
 					<span>·</span>
-					<span>{formatNumber(video.stat.view)} 播放</span>
+					<span className="flex items-center gap-1">
+						<SquarePlay className="w-[14px] h-[14px]" />
+						{formatNumber(video.stat.view)}
+					</span>
 				</div>
 			</div>
 		</a>
