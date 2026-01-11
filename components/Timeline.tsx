@@ -1,8 +1,9 @@
-'use client';
+'use client'
 
-import { Post } from '@/lib/posts';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Post } from '@/lib/posts'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
+import BilibiliVideoCard from './BilibiliVideoCard'
 
 interface TimelineProps {
   posts: Post[];
@@ -77,6 +78,9 @@ export default function Timeline({ posts }: TimelineProps) {
             className="prose prose-sm dark:prose-invert max-w-none leading-6 text-sm"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
+          {post.bilibiliVideo && (
+            <BilibiliVideoCard video={post.bilibiliVideo} />
+          )}
         </div>
       ))}
     </div>
@@ -96,13 +100,14 @@ export default function Timeline({ posts }: TimelineProps) {
       };
       container.addEventListener('click', handleClick);
 
-      const images = container.querySelectorAll('img');
+      const images = container.querySelectorAll('.prose img')
       images.forEach(img => {
-        img.loading = 'lazy';
-        img.style.cursor = 'pointer';
-        img.style.marginTop = '1rem';
-        img.style.marginBottom = '1rem';
-      });
+        const imgElement = img as HTMLImageElement
+        imgElement.loading = 'lazy'
+        imgElement.style.cursor = 'pointer'
+        imgElement.style.marginTop = '1rem'
+        imgElement.style.marginBottom = '1rem'
+      })
 
       const postCards = container.querySelectorAll('.post-card');
       const observer = new IntersectionObserver(
