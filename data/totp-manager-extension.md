@@ -10,9 +10,8 @@ date: 2026-01-12T23:32:02+08:00
  - 浅色、神色模式切换
  - 数据保护
 
+![application.png](https://s2.loli.net/2026/01/13/534vnXEH7uCwf2l.png)
+
 **GitHub 仓库**：[14Kay/chrome-TOTP-manager](https://github.com/14Kay/chrome-TOTP-manager)
 
 **Chrome 应用商店**：[TOTP Manager](https://chromewebstore.google.com/detail/totp-manager/jphklddbmhkonfegmbpebbigagecfjdn)
-
-
-![application.png](https://s2.loli.net/2026/01/13/rQXo4KsCkzqSyYb.png)
