@@ -2,7 +2,7 @@
 
 import { Post } from '@/lib/posts'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Image from 'next/image'
+import { flushSync } from 'react-dom'
 import BilibiliVideoCard from './BilibiliVideoCard'
 
 interface TimelineProps {
@@ -39,6 +39,8 @@ export default function Timeline({ posts }: TimelineProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [lastImage, setLastImage] = useState<string>('');
   const [visiblePosts, setVisiblePosts] = useState<Set<string>>(new Set());
+  const [imageRect, setImageRect] = useState<DOMRect | null>(null);
+  const [isZooming, setIsZooming] = useState(false);
 
   const totalChars = posts.reduce((sum, post) =>
     sum + post.content.replace(/<[^>]*>/g, '').length, 0
@@ -48,6 +50,13 @@ export default function Timeline({ posts }: TimelineProps) {
   useEffect(() => {
     if (selectedImage) {
       setLastImage(selectedImage);
+      document.body.style.overflow = 'hidden';
+      requestAnimationFrame(() => {
+        setIsZooming(false);
+        requestAnimationFrame(() => setIsZooming(true));
+      });
+    } else {
+      document.body.style.overflow = '';
     }
   }, [selectedImage]);
 
@@ -95,6 +104,9 @@ export default function Timeline({ posts }: TimelineProps) {
         const target = e.target as HTMLElement;
         if (target.tagName === 'IMG') {
           const img = target as HTMLImageElement;
+          flushSync(() => {
+            setImageRect(img.getBoundingClientRect());
+          });
           setSelectedImage(img.src);
         }
       };
@@ -162,16 +174,26 @@ export default function Timeline({ posts }: TimelineProps) {
         className={`fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md bg-black/20 transition-opacity duration-300 ${
           selectedImage ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
-        onClick={() => setSelectedImage(null)}
+        onClick={() => {
+          setIsZooming(false)
+          setTimeout(() => setSelectedImage(null), 300)
+        }}
       >
-        {lastImage && (
-          <Image
+        {selectedImage && lastImage && imageRect && (
+          <img
             src={lastImage}
-            alt="Last captured image"
-            width={800}
-            height={600}
-            unoptimized
-            className="max-w-[90vw] max-h-[90vh] w-auto h-auto"
+            alt="放大图片"
+            className="transition-all duration-300 ease-out"
+            style={{
+              width: isZooming ? 'auto' : `${imageRect.width}px`,
+              height: isZooming ? 'auto' : `${imageRect.height}px`,
+              maxWidth: isZooming ? '90vw' : 'none',
+              maxHeight: isZooming ? '90vh' : 'none',
+              transform: isZooming
+                ? 'translate(0, 0) scale(1.5)'
+                : `translate(${imageRect.left + imageRect.width / 2 - window.innerWidth / 2}px, ${imageRect.top + imageRect.height / 2 - window.innerHeight / 2}px)`,
+              opacity: isZooming ? 1 : 0,
+            }}
           />
         )}
       </div>
