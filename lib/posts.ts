@@ -8,6 +8,7 @@ import remarkRehype from 'remark-rehype'
 import rehypeKatex from 'rehype-katex'
 import rehypePrettyCode from 'rehype-pretty-code'
 import rehypeStringify from 'rehype-stringify'
+import rehypeExternalLinks from 'rehype-external-links'
 import { getBilibiliVideoInfo, type BilibiliVideoData } from './bilibili'
 
 export interface Post {
@@ -42,6 +43,7 @@ export async function getAllPosts(): Promise<Post[]> {
 								dark: 'github-dark',
 							},
 						})
+						.use(rehypeExternalLinks, { target: '_blank', rel: ['noopener', 'noreferrer'] })
 						.use(rehypeStringify)
 						.process(matterResult.content)
 					const content = processedContent.toString()
