@@ -28,6 +28,7 @@
     "remark-html": "^16.0.1",
     "remark-math": "^6.0.0",
     "remark-rehype": "^11.1.2",
+    "sharp": "^0.34.5",
     "shiki": "^3.20.0",
     "tailwind-merge": "^3.4.0"
   },
