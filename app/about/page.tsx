@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import CopyButton from '@/components/CopyButton';
 
@@ -63,12 +64,28 @@ export default function AboutPage() {
             热衷于探索前沿技术，通过代码解决实际问题，创造有价值的产品。
           </p>
         </section>
-
-        {/* 技术栈 */}
         <section
-          data-section-index={1}
+        data-section-index={1}
           className={`about-section bg-white dark:bg-gray-800/50 rounded-lg p-6 transition-all duration-800 ${
             visibleSections.has(1) ? 'post-visible' : 'post-hidden'
+          }`}
+          >
+          <h2 className="text-xl font-semibold mb-3">📅 贡献图</h2>
+          <Image
+            src="https://raw.githubusercontent.com/14kay/14kay/output/github-contribution-grid-snake.svg"
+            width={0}
+            height={0}
+            sizes="100vw"
+            style={{ width: '100%', height: 'auto' }}
+            alt="GitHub Contribution Grid Snake"
+            className="object-cover"
+          />
+        </section>
+        {/* 技术栈 */}
+        <section
+          data-section-index={2}
+          className={`about-section bg-white dark:bg-gray-800/50 rounded-lg p-6 transition-all duration-800 ${
+            visibleSections.has(2) ? 'post-visible' : 'post-hidden'
           }`}
         >
           <h2 className="text-xl font-semibold mb-3">🛠️ 技术栈</h2>
@@ -102,9 +119,9 @@ export default function AboutPage() {
 
         {/* 开源项目 */}
         <section
-          data-section-index={2}
+          data-section-index={3}
           className={`about-section bg-white dark:bg-gray-800/50 rounded-lg p-6 transition-all duration-800 ${
-            visibleSections.has(2) ? 'post-visible' : 'post-hidden'
+            visibleSections.has(3) ? 'post-visible' : 'post-hidden'
           }`}
         >
           <h2 className="text-xl font-semibold mb-3">🚀 开源项目</h2>
@@ -142,9 +159,9 @@ export default function AboutPage() {
 
         {/* 联系方式 */}
         <section
-          data-section-index={3}
+          data-section-index={4}
           className={`about-section bg-white dark:bg-gray-800/50 rounded-lg p-6 transition-all duration-800 ${
-            visibleSections.has(3) ? 'post-visible' : 'post-hidden'
+            visibleSections.has(4) ? 'post-visible' : 'post-hidden'
           }`}
         >
           <h2 className="text-xl font-semibold mb-3">📬 联系方式</h2>
