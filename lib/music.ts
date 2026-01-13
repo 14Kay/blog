@@ -12,6 +12,7 @@ export interface MusicData {
 	lyrics?: string
 	bgGradient?: string
 	textColor?: string
+	waveform?: number[]
 }
 
 const cacheDir = path.join(process.cwd(), 'data', '.music-cache')
@@ -107,6 +108,18 @@ async function extractColorsFromImage(imageUrl: string): Promise<{ bgGradient: s
 	}
 }
 
+async function generateWaveformData(audioUrl: string): Promise<number[] | undefined> {
+	try {
+		// For now, return undefined to let client generate waveform
+		// Server-side audio processing would require additional dependencies
+		// like ffmpeg or node-web-audio-api which are complex to set up
+		return undefined
+	} catch (error) {
+		console.error('Failed to generate waveform:', error)
+		return undefined
+	}
+}
+
 export async function getMusicInfo(keyword: string, source: string): Promise<MusicData | null> {
 	if (!fs.existsSync(cacheDir)) {
 		fs.mkdirSync(cacheDir, { recursive: true })
@@ -133,7 +146,9 @@ export async function getMusicInfo(keyword: string, source: string): Promise<Mus
 		// 获取歌词
 		let lyrics: string | undefined
 		try {
-			const lrcResponse = await fetch(item.lrc)
+			// Upgrade HTTP to HTTPS for lyrics URL
+			const secureLrcUrl = item.lrc?.replace(/^http:/, 'https:') || item.lrc
+			const lrcResponse = await fetch(secureLrcUrl)
 			lyrics = await lrcResponse.text()
 		} catch (error) {
 			console.error(`获取歌词失败 (${item.id}):`, error)
@@ -148,13 +163,17 @@ export async function getMusicInfo(keyword: string, source: string): Promise<Mus
 			textColor = colors.textColor
 		}
 
+		// Upgrade HTTP to HTTPS to avoid Mixed Content warnings
+		const secureUrl = item.url?.replace(/^http:/, 'https:') || item.url
+		const securePic = item.pic?.replace(/^http:/, 'https:') || item.pic
+
 		const data: MusicData = {
 			id: item.id,
 			title: item.name,
 			artist: item.artist,
 			album: item.album,
-			pic: item.pic,
-			url: item.url,
+			pic: securePic,
+			url: secureUrl,
 			source,
 			lyrics,
 			bgGradient,

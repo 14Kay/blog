@@ -180,7 +180,16 @@ export default function MusicCard({ music }: MusicCardProps) {
 
 		const generateWaveform = async () => {
 			try {
-				// Check cache first
+				// Use server-generated waveform if available
+				if (music.waveform && music.waveform.length > 0) {
+					if (active) {
+						setFrequencyData(new Uint8Array(music.waveform));
+						console.log('Loaded waveform from server cache');
+						return;
+					}
+				}
+
+				// Check localStorage cache
 				const cacheKey = `waveform_v3_${music.url}`;
 				const cached = localStorage.getItem(cacheKey);
 
@@ -189,7 +198,7 @@ export default function MusicCard({ music }: MusicCardProps) {
 						const cachedData = JSON.parse(cached);
 						if (active) {
 							setFrequencyData(new Uint8Array(cachedData));
-							console.log('Loaded waveform from cache');
+							console.log('Loaded waveform from localStorage');
 							return;
 						}
 					} catch (e) {
@@ -199,80 +208,103 @@ export default function MusicCard({ music }: MusicCardProps) {
 				}
 
 				// Fetch the entire audio file
-				const response = await fetch(music.url);
-				const arrayBuffer = await response.arrayBuffer();
+				// First, get the final URL after redirects, then upgrade to HTTPS
+				try {
+					// Use HEAD request to follow redirects without downloading
+					const headResponse = await fetch(music.url, {
+						method: 'HEAD',
+						redirect: 'follow'
+					});
 
-				if (!active) return; // Cleanup check inside async
+					// Get the final URL after all redirects
+					let finalUrl = headResponse.url;
 
-				// Decode to PCM data
-				const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+					// Upgrade HTTP to HTTPS to avoid Mixed Content
+					if (finalUrl.startsWith('http://')) {
+						finalUrl = finalUrl.replace('http://', 'https://');
+						console.log('Upgraded URL to HTTPS:', finalUrl);
+					}
 
-				// Calculate peaks for 40 bars (Higher resolution)
-				const channelData = audioBuffer.getChannelData(0);
-				const bars = 40;
-				const step = Math.ceil(channelData.length / bars);
-				const rawData = new Float32Array(bars);
+					// Now fetch the actual audio data with HTTPS URL
+					const response = await fetch(finalUrl);
+					const arrayBuffer = await response.arrayBuffer();
 
-				// 1. Calculate RMS with larger context window
-				// Use overlapping windows to capture overall energy distribution
-				let maxRms = 0;
-				let minRms = Infinity;
+					if (!active) return;
 
-				for (let i = 0; i < bars; i++) {
-					let sum = 0;
-					const start = i * step;
-					const end = Math.min(start + step, channelData.length);
+					// Decode to PCM data
+					const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
 
-					// Extend window to include neighboring samples for better context
-					const windowStart = Math.max(0, start - Math.floor(step * 0.5));
-					const windowEnd = Math.min(channelData.length, end + Math.floor(step * 0.5));
-					const len = windowEnd - windowStart;
+					// Calculate peaks for 40 bars (Higher resolution)
+					const channelData = audioBuffer.getChannelData(0);
+					const bars = 40;
+					const step = Math.ceil(channelData.length / bars);
+					const rawData = new Float32Array(bars);
 
-					if (len > 0) {
-						for (let j = windowStart; j < windowEnd; j++) {
-							sum += channelData[j] * channelData[j];
+					// 1. Calculate RMS with larger context window
+					// Use overlapping windows to capture overall energy distribution
+					let maxRms = 0;
+					let minRms = Infinity;
+
+					for (let i = 0; i < bars; i++) {
+						let sum = 0;
+						const start = i * step;
+						const end = Math.min(start + step, channelData.length);
+
+						// Extend window to include neighboring samples for better context
+						const windowStart = Math.max(0, start - Math.floor(step * 0.5));
+						const windowEnd = Math.min(channelData.length, end + Math.floor(step * 0.5));
+						const len = windowEnd - windowStart;
+
+						if (len > 0) {
+							for (let j = windowStart; j < windowEnd; j++) {
+								sum += channelData[j] * channelData[j];
+							}
+							const rms = Math.sqrt(sum / len);
+							rawData[i] = rms;
+							if (rms > maxRms) maxRms = rms;
+							if (rms < minRms) minRms = rms;
+						} else {
+							rawData[i] = 0;
 						}
-						const rms = Math.sqrt(sum / len);
-						rawData[i] = rms;
-						if (rms > maxRms) maxRms = rms;
-						if (rms < minRms) minRms = rms;
-					} else {
-						rawData[i] = 0;
 					}
-				}
 
-				// Avoid flatline division
-				if (minRms === Infinity) minRms = 0;
-				const range = maxRms - minRms || 1;
+					// Avoid flatline division
+					if (minRms === Infinity) minRms = 0;
+					const range = maxRms - minRms || 1;
 
-				// 2. Adaptive Normalization and Exaggerate
-				const tempBars = new Float32Array(bars);
-				for (let i = 0; i < bars; i++) {
-					const normalized = Math.max(0, (rawData[i] - minRms) / range);
-					const exaggerated = Math.pow(normalized, 3.0);
-					tempBars[i] = exaggerated * 255;
-				}
-
-				// 3. Enhanced Smoothing for fluid transitions
-				const newData = new Uint8Array(bars);
-				for (let i = 0; i < bars; i++) {
-					const prev = tempBars[i - 1] || tempBars[i];
-					const curr = tempBars[i];
-					const next = tempBars[i + 1] || tempBars[i];
-					const smoothed = prev * 0.15 + curr * 0.7 + next * 0.15;
-					newData[i] = Math.max(3, Math.floor(smoothed));
-				}
-
-				if (active) {
-					setFrequencyData(newData);
-					// Save to cache
-					try {
-						localStorage.setItem(cacheKey, JSON.stringify(Array.from(newData)));
-						console.log('Saved waveform to cache');
-					} catch (e) {
-						// localStorage might be full, ignore
-						console.warn('Failed to cache waveform:', e);
+					// 2. Adaptive Normalization and Exaggerate
+					const tempBars = new Float32Array(bars);
+					for (let i = 0; i < bars; i++) {
+						const normalized = Math.max(0, (rawData[i] - minRms) / range);
+						const exaggerated = Math.pow(normalized, 3.0);
+						tempBars[i] = exaggerated * 255;
 					}
+
+					// 3. Enhanced Smoothing for fluid transitions
+					const newData = new Uint8Array(bars);
+					for (let i = 0; i < bars; i++) {
+						const prev = tempBars[i - 1] || tempBars[i];
+						const curr = tempBars[i];
+						const next = tempBars[i + 1] || tempBars[i];
+						const smoothed = prev * 0.15 + curr * 0.7 + next * 0.15;
+						newData[i] = Math.max(3, Math.floor(smoothed));
+					}
+
+					if (active) {
+						setFrequencyData(newData);
+						// Save to cache
+						try {
+							localStorage.setItem(cacheKey, JSON.stringify(Array.from(newData)));
+							console.log('Saved waveform to cache');
+						} catch (e) {
+							// localStorage might be full, ignore
+							console.warn('Failed to cache waveform:', e);
+						}
+					}
+				} catch (urlError) {
+					// URL upgrade failed, this will be caught by outer catch
+					console.warn('URL upgrade failed:', urlError);
+					throw urlError;
 				}
 			} catch (err) {
 				console.error("Failed to generate waveform:", err);
@@ -291,7 +323,7 @@ export default function MusicCard({ music }: MusicCardProps) {
 				audioContextRef.current?.close()
 			}
 		}
-	}, [music.url])
+	}, [music.url, music.waveform])
 
 	useEffect(() => {
 		if (!audioRef.current) return
