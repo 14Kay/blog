@@ -1,17 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 import Header from "@/components/Header";
 
-const geistSans = Geist({
-	variable: "--font-geist-sans",
-	subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-	variable: "--font-geist-mono",
-	subsets: ["latin"],
+const googleSans = localFont({
+	src: "./fonts/GoogleSans-Regular.ttf",
+	variable: "--font-google-sans",
+	display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -53,7 +49,7 @@ export default function RootLayout({
 				<meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
 			</head>
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+				className={`${googleSans.variable} antialiased`}
 			>
 				<Header />
 				<main className="pt-16">
