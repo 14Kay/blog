@@ -50,7 +50,7 @@ export default async function GamesPage() {
     return (
         <div className="space-y-12 pb-12">
             {/* Hero Section with Immersive Background */}
-            <section className="relative w-full h-[400px] sm:h-[500px] flex items-center justify-center overflow-hidden">
+            <section className="relative w-full min-h-[400px] sm:h-[500px] flex items-center justify-center overflow-hidden py-20 sm:py-0">
                 {/* Background Image (User Avatar Blown Up & Blurred) */}
                 <div className="absolute inset-0 z-0">
                     <Image
@@ -63,42 +63,42 @@ export default async function GamesPage() {
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white dark:via-gray-900/50 dark:to-gray-900" />
                 </div>
 
-                <div className="relative z-10 flex flex-col items-center text-center space-y-6 px-4 max-w-4xl mx-auto mt-10 sm:mt-0">
+                <div className="relative z-10 flex flex-col items-center text-center space-y-6 px-4 max-w-4xl mx-auto mt-0">
                     <div className="relative group">
                         <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full blur opacity-40 group-hover:opacity-75 transition duration-1000 animate-pulse"></div>
                         <a href={profile.profileurl} target="_blank" rel="noopener noreferrer" className="relative block">
                             <Image
                                 src={profile.avatarfull}
                                 alt={profile.personaname}
-                                width={140}
-                                height={140}
-                                className="rounded-full border-4 border-white dark:border-gray-800 shadow-2xl transition-transform duration-500 group-hover:scale-105"
+                                width={120}
+                                height={120}
+                                className="rounded-full border-4 border-white dark:border-gray-800 shadow-2xl transition-transform duration-500 group-hover:scale-105 sm:w-[140px] sm:h-[140px]"
                                 unoptimized
                             />
-                            <div className={`absolute bottom-2 right-2 w-5 h-5 border-4 border-white dark:border-gray-800 rounded-full ${profile.personastate === 1 ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                            <div className={`absolute bottom-2 right-2 w-4 h-4 sm:w-5 sm:h-5 border-4 border-white dark:border-gray-800 rounded-full ${profile.personastate === 1 ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                         </a>
                     </div>
 
                     <div className="space-y-2">
-                        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white drop-shadow-sm">
+                        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white drop-shadow-sm">
                             {profile.personaname}
                         </h1>
 
                     </div>
 
                     {/* Stats Cards - Floating */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6 w-full max-w-2xl pt-4">
-                        <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/20 dark:border-white/5 transform hover:-translate-y-1 transition-transform">
-                            <p className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-blue-600 to-cyan-500">{ownedGames.length}</p>
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">Games Owned</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6 w-full max-w-2xl pt-2 sm:pt-4">
+                        <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-md rounded-2xl p-3 sm:p-4 shadow-lg border border-white/20 dark:border-white/5 transform hover:-translate-y-1 transition-transform">
+                            <p className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-blue-600 to-cyan-500">{ownedGames.length}</p>
+                            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">Games Owned</p>
                         </div>
-                        <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/20 dark:border-white/5 transform hover:-translate-y-1 transition-transform">
-                            <p className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-purple-600 to-pink-500">{totalPlaytimeHours.toLocaleString()}</p>
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">Hours Played</p>
+                        <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-md rounded-2xl p-3 sm:p-4 shadow-lg border border-white/20 dark:border-white/5 transform hover:-translate-y-1 transition-transform">
+                            <p className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-purple-600 to-pink-500">{totalPlaytimeHours.toLocaleString()}</p>
+                            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">Hours Played</p>
                         </div>
-                        <div className="col-span-2 sm:col-span-1 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/20 dark:border-white/5 transform hover:-translate-y-1 transition-transform">
-                            <p className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-amber-500 to-orange-500">{getAccountAge(profile.timecreated)}</p>
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">Years on Steam</p>
+                        <div className="col-span-2 sm:col-span-1 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md rounded-2xl p-3 sm:p-4 shadow-lg border border-white/20 dark:border-white/5 transform hover:-translate-y-1 transition-transform">
+                            <p className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-amber-500 to-orange-500">{getAccountAge(profile.timecreated)}</p>
+                            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">Years on Steam</p>
                         </div>
                     </div>
                 </div>

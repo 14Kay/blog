@@ -35,18 +35,18 @@ export default function GameCard({ game, rank }: GameCardProps) {
                 ) : null}
             </div>
 
-            <div className="flex flex-1 flex-col p-4">
-                <h3 className="line-clamp-1 text-lg font-bold text-gray-900 dark:text-gray-100" title={game.name}>
+            <div className="flex flex-1 flex-col p-3 sm:p-4">
+                <h3 className="line-clamp-1 text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100" title={game.name}>
                     {game.name}
                 </h3>
 
-                <div className="mt-auto flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                <div className="mt-auto flex items-center justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                     <span className="flex items-center gap-1.5">
-                        <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         {formatPlaytime(game.playtime_forever)}
                     </span>
                     {rank && (
-                        <span className="text-xs opacity-30 font-medium">#{rank}</span>
+                        <span className="text-[10px] sm:text-xs opacity-30 font-medium">#{rank}</span>
                     )}
                 </div>
             </div>
