@@ -1,37 +1,42 @@
-import Link from "next/link";
+import Link from 'next/link'
 
 export default function NotFound() {
   return (
-    <div className="h-screen mx-auto grid place-items-center text-center px-8 absolute inset-0">
-      <div>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          aria-hidden="true"
-          data-slot="icon"
-          className="w-20 h-20 mx-auto"
-        >
-          <path
-            fillRule="evenodd"
-            d="M3 2.25a.75.75 0 0 1 .75.75v.54l1.838-.46a9.75 9.75 0 0 1 6.725.738l.108.054A8.25 8.25 0 0 0 18 4.524l3.11-.732a.75.75 0 0 1 .917.81 47.784 47.784 0 0 0 .005 10.337.75.75 0 0 1-.574.812l-3.114.733a9.75 9.75 0 0 1-6.594-.77l-.108-.054a8.25 8.25 0 0 0-5.69-.625l-2.202.55V21a.75.75 0 0 1-1.5 0V3A.75.75 0 0 1 3 2.25Z"
-            clipRule="evenodd"
-          ></path>
-        </svg>
-        <h1 className="block antialiased tracking-normal font-sans text-5xl font-semibold leading-tight text-blue-gray-900 mt-10 !text-3xl !leading-snug md:!text-4xl">
-          Error 404 <br /> It looks like something went wrong.
+    <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
+      <div className="relative">
+        {/* Layered Text for Depth */}
+        <h1 className="text-8xl md:text-9xl font-bold tracking-tighter text-gray-100 dark:text-gray-800/50 select-none">
+          404
         </h1>
-        <p className="block antialiased font-sans text-base font-light leading-relaxed text-inherit mt-8 mb-14 text-[18px] font-normal text-gray-500 mx-auto md:max-w-sm">
-          Don&apos;t worry, our team is already on it. Please try refreshing the page
-          or come back later.
-        </p>
-        <Link href="/"
-          className="align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 px-6 rounded-lg bg-gray-900 text-white shadow-md shadow-gray-900/10 hover:shadow-lg hover:shadow-gray-900/20 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none bg-gray-900 w-full px-4 md:w-[8rem]"
-          type="button"
-        >
-          back home
-        </Link>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="h-2 w-2 bg-gray-900 dark:bg-gray-100 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+          <div className="h-2 w-2 bg-gray-900 dark:bg-gray-100 rounded-full animate-bounce mx-2" style={{ animationDelay: '150ms' }} />
+          <div className="h-2 w-2 bg-gray-900 dark:bg-gray-100 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+        </div>
       </div>
+
+      <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-6 mb-3">
+        这里空空如也
+      </h2>
+
+      <p className="text-gray-500 dark:text-gray-400 mb-10 max-w-sm leading-relaxed">
+        可能是链接输入有误，或者这篇内容已经因为过于害羞而躲起来了。
+      </p>
+
+      <Link
+        href="/"
+        className="group relative inline-flex items-center justify-center px-8 py-3 text-sm font-medium transition-all duration-300 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 rounded-full hover:shadow-lg hover:-translate-y-0.5 hover:border-gray-300 dark:hover:border-gray-600"
+      >
+        <span>返回首页</span>
+        <svg
+          className="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-x-1 text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+        </svg>
+      </Link>
     </div>
-  );
+  )
 }
