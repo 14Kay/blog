@@ -52,7 +52,7 @@ export default function RootLayout({
 				className={`${googleSans.variable} antialiased`}
 			>
 				<Header />
-				<main className="pt-16">
+				<main className="pt-[60px]">
 					{children}
 				</main>
 			</body>

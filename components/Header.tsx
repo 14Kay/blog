@@ -4,7 +4,7 @@ import ThemeToggle from './ThemeToggle'
 
 export default function Header() {
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-transparent backdrop-blur-md border-b border-gray-200 dark:border-gray-700 z-50">
+    <header className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-transparent backdrop-blur-md border-gray-200 z-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
         <div className="w-8 h-8 rounded-full bg-gray-300 overflow-hidden">
           <Image src="/avatar.png" alt="avatar" width={32} height={32} className="w-full h-full object-cover" />
