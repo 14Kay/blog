@@ -135,10 +135,16 @@ export default function AboutPage() {
 
             <div className="border-l-4 border-blue-500 pl-4">
               <h3 className="font-medium">
+                <a href="https://github.com/14Kay/chrome-TOTP-manager" target='_blank'>TOTP Manager</a>
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">TOTP Manager 是一个用于管理 TOTP 密钥的 Chrome 扩展</p>
+            </div>
+
+            <div className="border-l-4 border-blue-500 pl-4">
+              <h3 className="font-medium">
                 <a href="https://github.com/14Kay/scripts" target='_blank'>scripts</a>
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">放闲的没事写的脚本</p>
-              
             </div>
 
             <div className="border-l-4 border-blue-500 pl-4">
