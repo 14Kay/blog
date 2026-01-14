@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import type { Friend } from '@/lib/friends'
 
+import FriendCard from './FriendCard'
+
 interface FriendListProps {
 	friends: Friend[]
 }
@@ -50,34 +52,14 @@ export default function FriendList({ friends }: FriendListProps) {
 	}, [friends])
 
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 gap-4" ref={containerRef}>
+		<div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6" ref={containerRef}>
 			{friends.map((friend, index) => (
-				<a
+				<FriendCard
 					key={index}
-					href={friend.url}
-					target="_blank"
-					rel="noopener noreferrer"
-					data-friend-index={index}
-					className={`friend-card bg-white dark:bg-gray-800/50 rounded-lg p-6 transition-all duration-800 ${
-						visibleFriends.has(index) ? 'post-visible' : 'post-hidden'
-					}`}
-				>
-					<div className="flex gap-4 items-center">
-						<Image
-							src={friend.avatar}
-							alt={friend.title}
-							width={64}
-							height={64}
-							className="rounded-lg flex-shrink-0"
-						/>
-						<div className="flex-1 min-w-0">
-							<h2 className="text-lg font-semibold mb-1 truncate">{friend.title}</h2>
-							<p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-								{friend.description}
-							</p>
-						</div>
-					</div>
-				</a>
+					friend={friend}
+					index={index}
+					isVisible={visibleFriends.has(index)}
+				/>
 			))}
 		</div>
 	)
