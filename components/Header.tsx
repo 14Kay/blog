@@ -12,6 +12,7 @@ export default function Header() {
         <nav className="flex gap-4 sm:gap-6 text-sm items-center">
           <Link href="/" className="hover:text-blue-500">瞎哔哔</Link>
           <Link href="/songs" className="hover:text-blue-500">我的歌单</Link>
+          <Link href="/games" className="hover:text-blue-500">游戏库</Link>
           <Link href="/friends" className="hover:text-blue-500">友链</Link>
           <Link href="/about" className="hover:text-blue-500">关于</Link>
           <ThemeToggle />
