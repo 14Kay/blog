@@ -3,8 +3,14 @@
 import { Post } from '@/lib/posts'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import BilibiliVideoCard from './BilibiliVideoCard'
-import MusicCard from './MusicCard'
+import dynamic from 'next/dynamic'
+
+const BilibiliVideoCard = dynamic(() => import('./BilibiliVideoCard'), {
+  loading: () => <div className="h-24 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
+})
+const MusicCard = dynamic(() => import('./MusicCard'), {
+  loading: () => <div className="w-full h-32 bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse" />
+})
 
 interface TimelineProps {
   posts: Post[];
