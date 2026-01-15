@@ -72,13 +72,13 @@ export default function Timeline({ posts }: TimelineProps) {
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-500 dark:text-gray-400 mb-2">
             <a className="font-bold" href={`#${posts.length - index}`}>#{posts.length - index}</a>
             <span>·</span>
-            <span>{getTimeAgo(post.date)}</span>
+            <span suppressHydrationWarning>{getTimeAgo(post.date)}</span>
             <span className="hidden sm:inline">·</span>
-            <span className="hidden sm:inline">{formatDateTime(post.date)}</span>
+            <span className="hidden sm:inline" suppressHydrationWarning>{formatDateTime(post.date)}</span>
             {post.edited && (
               <>
                 <span className="hidden sm:inline">·</span>
-                <span className="hidden sm:inline">编辑于 {formatDateTime(post.edited)}</span>
+                <span className="hidden sm:inline" suppressHydrationWarning>编辑于 {formatDateTime(post.edited)}</span>
               </>
             )}
           </div>
