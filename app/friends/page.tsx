@@ -1,11 +1,15 @@
 import { getAllFriends } from '@/lib/friends'
+import { getSteamProfile } from '@/lib/steam'
 import FriendList from '@/components/FriendList'
 import FriendCard from '@/components/FriendCard'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = {
-	title: '友链 | 14K',
-	description: '我的朋友们，一起分享生活与技术',
+export async function generateMetadata(): Promise<Metadata> {
+	const profile = await getSteamProfile()
+	return {
+		title: profile ? `${profile.personaname}'s Friends` : 'Friends',
+		description: '我的朋友们，一起分享生活与技术',
+	}
 }
 
 export default async function FriendsPage() {

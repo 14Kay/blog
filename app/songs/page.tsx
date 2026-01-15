@@ -1,10 +1,14 @@
 import { getAllSongs } from '@/lib/songs'
+import { getSteamProfile } from '@/lib/steam'
 import SongList from '@/components/SongList'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = {
-	title: '我的歌单 | 14K',
-	description: 'Life is cheap. Show me the music. 分享我喜欢的音乐',
+export async function generateMetadata(): Promise<Metadata> {
+  const profile = await getSteamProfile()
+  return {
+    title: profile ? `${profile.personaname}'s Songs` : 'Songs',
+    description: 'Life is cheap. Show me the music. 分享我喜欢的音乐',
+  }
 }
 
 export default async function SongsPage() {

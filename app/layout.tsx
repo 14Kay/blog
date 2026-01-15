@@ -12,8 +12,8 @@ const googleSans = localFont({
 
 export const metadata: Metadata = {
 	title: {
-		default: '14K | Life & Music',
-		template: '%s | 14K',
+		default: 'Code for fun, run for life.',
+		template: '%s | Code for fun, run for life.',
 	},
 	description: '记录生活，分享音乐',
 	keywords: ['博客', '前端开发', '音乐', 'Next.js', 'React', 'TypeScript'],
@@ -23,13 +23,13 @@ export const metadata: Metadata = {
 		type: 'website',
 		locale: 'zh_CN',
 		url: 'https://blog.14kay.top',
-		title: '14K | Life & Music',
+		title: 'Code for fun, run for life.',
 		description: '记录生活，分享音乐',
 		siteName: '14K',
 	},
 	twitter: {
 		card: 'summary',
-		title: '14K | Life & Music',
+		title: 'Code for fun, run for life.',
 		description: '记录生活，分享音乐',
 	},
 	robots: {
