@@ -12,8 +12,8 @@ const googleSans = localFont({
 
 export const metadata: Metadata = {
 	title: {
-		default: 'Code for fun, run for life.',
-		template: '%s | Code for fun, run for life.',
+		default: '14K | Life & Music',
+		template: '%s | 14K',
 	},
 	description: '记录生活，分享音乐',
 	keywords: ['博客', '前端开发', '音乐', 'Next.js', 'React', 'TypeScript'],
@@ -23,13 +23,13 @@ export const metadata: Metadata = {
 		type: 'website',
 		locale: 'zh_CN',
 		url: 'https://blog.14kay.top',
-		title: 'Code for fun, run for life.',
+		title: '14K | Life & Music',
 		description: '记录生活，分享音乐',
 		siteName: '14K',
 	},
 	twitter: {
 		card: 'summary',
-		title: 'Code for fun, run for life.',
+		title: '14K | Life & Music',
 		description: '记录生活，分享音乐',
 	},
 	robots: {
@@ -44,9 +44,26 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+				<script
+					dangerouslySetInnerHTML={{
+						__html: `
+              (function() {
+                try {
+                  var stored = localStorage.getItem('theme');
+                  var system = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  if (stored === 'dark' || (!stored && system)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch (e) {}
+              })()
+            `,
+					}}
+				/>
 			</head>
 			<body
 				className={`${googleSans.variable} antialiased`}
