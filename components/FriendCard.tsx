@@ -27,6 +27,7 @@ export default function FriendCard({ friend, index = 0, isVisible = true, classN
                     alt={friend.title}
                     width={56}
                     height={56}
+                    unoptimized
                     className="rounded-lg object-cover shadow-sm group-hover:shadow-md transition-shadow duration-300"
                 />
             </div>
