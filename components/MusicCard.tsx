@@ -175,6 +175,7 @@ export default function MusicCard({ music }: MusicCardProps) {
 		if (!music.url) return
 
 		let active = true;
+		let observer: IntersectionObserver | null = null;
 		const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
 		audioContextRef.current = ctx;
 
@@ -315,15 +316,33 @@ export default function MusicCard({ music }: MusicCardProps) {
 			}
 		};
 
-		generateWaveform();
+		const initObserver = () => {
+			const element = document.getElementById(`music-card-${music.id || music.url}`);
+			if (element) {
+				observer = new IntersectionObserver((entries) => {
+					if (entries[0].isIntersecting) {
+						generateWaveform();
+						observer?.disconnect();
+					}
+				});
+				observer.observe(element);
+			} else {
+				// Fallback if element not found immediately
+				generateWaveform();
+			}
+		};
+
+		// Schedule observer initialization
+		setTimeout(initObserver, 100);
 
 		return () => {
 			active = false;
 			if (audioContextRef.current?.state !== 'closed') {
 				audioContextRef.current?.close()
 			}
+			observer?.disconnect();
 		}
-	}, [music.url, music.waveform])
+	}, [music.url, music.waveform, music.id])
 
 	useEffect(() => {
 		if (!audioRef.current) return
@@ -371,6 +390,7 @@ export default function MusicCard({ music }: MusicCardProps) {
 
 	return (
 		<div
+			id={`music-card-${music.id || music.url}`}
 			className="w-full max-w-[250px] mx-0 backdrop-blur-md rounded-[1rem] p-4 overflow-hidden"
 			style={{ background: bgGradient }}
 		>
