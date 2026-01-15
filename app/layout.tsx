@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 	openGraph: {
 		type: 'website',
 		locale: 'zh_CN',
-		url: 'https://blog.14kay.top',
+		url: 'https://14k.cc.cd',
 		title: 'Code for fun, run for life.',
 		description: '记录生活，分享音乐',
 		siteName: '14K',

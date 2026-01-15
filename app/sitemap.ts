@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { getAllPosts } from '@/lib/posts'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-	const baseUrl = 'https://blog.14kay.top'
+	const baseUrl = 'https://14k.cc.cd'
 
 	const posts = await getAllPosts()
 	const postUrls = posts.map((post) => ({

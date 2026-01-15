@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
 			userAgent: '*',
 			allow: '/',
 		},
-		sitemap: 'https://blog.14kay.top/sitemap.xml',
+		sitemap: 'https://14k.cc.cd/sitemap.xml',
 	}
 }
