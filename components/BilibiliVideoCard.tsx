@@ -25,7 +25,7 @@ function formatNumber(num: number): string {
 
 export default function BilibiliVideoCard({ video }: BilibiliVideoCardProps) {
 	const picUrl = video.pic.replace(/^https?:/, 'https:')
-	const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(picUrl)}`
+	const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(picUrl)}&w=320`
 
 	return (
 		<a
