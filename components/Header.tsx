@@ -47,7 +47,7 @@ export default function Header() {
             )
           })}
           <div className="flex items-center">
-            <a
+            {/* <a
               href="https://www.travellings.cn/plain.html"
               target="_blank"
               rel="noopener noreferrer"
@@ -55,7 +55,7 @@ export default function Header() {
               title="Travellings"
             >
               <TramFront className="w-5 h-5" />
-            </a>
+            </a> */}
             <ThemeToggle />
           </div>
         </nav>
