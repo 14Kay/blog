@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { TramFront } from 'lucide-react'
+import { buttonVariants } from '@/components/ui/button'
 import ThemeToggle from './ThemeToggle'
 import { cn } from '@/lib/utils'
 
@@ -44,7 +46,18 @@ export default function Header() {
               </Link>
             )
           })}
-          <ThemeToggle />
+          <div className="flex items-center">
+            <a
+              href="https://www.travellings.cn/plain.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: "ghost", size: "icon" })}
+              title="Travellings"
+            >
+              <TramFront className="w-5 h-5" />
+            </a>
+            <ThemeToggle />
+          </div>
         </nav>
       </div>
     </header>
