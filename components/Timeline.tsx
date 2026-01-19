@@ -78,7 +78,7 @@ export default function Timeline({ posts }: TimelineProps) {
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-500 dark:text-gray-400 mb-2">
             <a className="font-bold" href={`#${posts.length - index}`}>#{posts.length - index}</a>
             <span>·</span>
-            <span suppressHydrationWarning>{getTimeAgo(post.date)}</span>
+            <TimeAgo key={post.date} date={post.date} />
             <span className="hidden sm:inline">·</span>
             <span className="hidden sm:inline" suppressHydrationWarning>{formatDateTime(post.date)}</span>
             {post.edited && (
@@ -201,4 +201,18 @@ export default function Timeline({ posts }: TimelineProps) {
       </div>
     </>
   );
+}
+
+function TimeAgo({ date }: { date: string }) {
+  const [timeAgo, setTimeAgo] = useState(getTimeAgo(date));
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeAgo(getTimeAgo(date));
+    }, 60000); // 每分钟更新一次
+
+    return () => clearInterval(timer);
+  }, [date]);
+
+  return <span suppressHydrationWarning>{timeAgo}</span>;
 }
