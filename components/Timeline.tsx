@@ -2,8 +2,10 @@
 
 import { Post } from '@/lib/posts'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { flushSync } from 'react-dom'
 import dynamic from 'next/dynamic'
+import Zoom from 'react-medium-image-zoom'
+import parse, { DOMNode, Element, domToReact } from 'html-react-parser'
+import 'react-medium-image-zoom/dist/styles.css'
 
 const BilibiliVideoCard = dynamic(() => import('./BilibiliVideoCard'), {
   loading: () => <div className="h-24 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
@@ -43,29 +45,29 @@ function formatDateTime(dateStr: string): string {
 
 export default function Timeline({ posts }: TimelineProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [lastImage, setLastImage] = useState<string>('');
-  const [imageRect, setImageRect] = useState<DOMRect | null>(null);
-  const [isZooming, setIsZooming] = useState(false);
 
   const totalChars = posts.reduce((sum, post) =>
     sum + post.content.replace(/<[^>]*>/g, '').length, 0
   );
 
-  // 保存最后选择的图片，避免重新加载
-  useEffect(() => {
-    if (selectedImage) {
-      setLastImage(selectedImage);
-      document.body.style.overflow = 'hidden';
-      // Start with zoom-out state, then animate to zoom-in
-      setIsZooming(false);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setIsZooming(true));
-      });
-    } else {
-      document.body.style.overflow = '';
+  // HTML Parser configuration to replace <img> with <Zoom> component
+  const parseOptions = {
+    replace: (domNode: DOMNode) => {
+      if (domNode instanceof Element && domNode.name === 'img') {
+        const { src, alt, class: className, ...rest } = domNode.attribs;
+        return (
+          <Zoom classDialog="custom-zoom-dialog">
+            <img
+              src={src}
+              alt={alt}
+              className={`${className || ''} rounded-lg cursor-zoom-in`}
+              {...rest}
+            />
+          </Zoom>
+        );
+      }
     }
-  }, [selectedImage]);
+  };
 
   const postsContent = useMemo(() => (
     <div className='container'>
@@ -88,10 +90,11 @@ export default function Timeline({ posts }: TimelineProps) {
               </>
             )}
           </div>
-          <div
-            className="prose prose-sm dark:prose-invert max-w-none leading-6 text-sm"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+
+          <div className="prose prose-sm dark:prose-invert max-w-none leading-6 text-sm">
+            {parse(post.content, parseOptions)}
+          </div>
+
           {post.bilibiliVideo && (
             <BilibiliVideoCard video={post.bilibiliVideo} />
           )}
@@ -106,28 +109,6 @@ export default function Timeline({ posts }: TimelineProps) {
   useEffect(() => {
     if (containerRef.current) {
       const container = containerRef.current;
-
-      // Event delegation for image clicks
-      const handleClick = (e: MouseEvent) => {
-        const target = e.target as HTMLElement;
-        if (target.tagName === 'IMG') {
-          const img = target as HTMLImageElement;
-          flushSync(() => {
-            setImageRect(img.getBoundingClientRect());
-          });
-          setSelectedImage(img.src);
-        }
-      };
-      container.addEventListener('click', handleClick);
-
-      const images = container.querySelectorAll('.prose img')
-      images.forEach(img => {
-        const imgElement = img as HTMLImageElement
-        imgElement.style.cursor = 'pointer'
-        imgElement.style.marginTop = '1rem'
-        imgElement.style.marginBottom = '1rem'
-      })
-
       const postCards = container.querySelectorAll('.post-card');
       const observer = new IntersectionObserver(
         (entries) => {
@@ -145,20 +126,19 @@ export default function Timeline({ posts }: TimelineProps) {
       postCards.forEach((card) => {
         const rect = card.getBoundingClientRect();
         if (rect.top < window.innerHeight && rect.bottom > 0) {
-          // 在视口内的卡片：使用 setTimeout 实现顺序动画
+          // Cards in viewport: animate sequentially
           setTimeout(() => {
             card.classList.remove('post-hidden')
             card.classList.add('post-visible')
           }, visibleIndex * 100);
           visibleIndex++;
         } else {
-          // 不在视口内的卡片：使用 Observer 监听滚动
+          // Cards outside viewport: use observer
           observer.observe(card);
         }
       });
 
       return () => {
-        container.removeEventListener('click', handleClick);
         observer.disconnect();
       };
     }
@@ -172,33 +152,6 @@ export default function Timeline({ posts }: TimelineProps) {
         <p className="text-base text-gray-500 dark:text-gray-400 mb-6"> 共 {posts.length} 条 · {totalChars} 字</p>
         {postsContent}
       </div>
-
-      <div
-        className={`fixed inset-0 flex items-center justify-center z-50 backdrop-blur-md bg-black/20 transition-opacity duration-300 ${selectedImage ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
-        onClick={() => {
-          setIsZooming(false)
-          setTimeout(() => setSelectedImage(null), 300)
-        }}
-      >
-        {selectedImage && lastImage && imageRect && (
-          <img
-            src={lastImage}
-            alt="放大图片"
-            className="transition-all duration-300 ease-out"
-            style={{
-              width: isZooming ? 'auto' : `${imageRect.width}px`,
-              height: isZooming ? 'auto' : `${imageRect.height}px`,
-              maxWidth: isZooming ? '90vw' : 'none',
-              maxHeight: isZooming ? '90vh' : 'none',
-              transform: isZooming
-                ? 'translate(0, 0) scale(1.5)'
-                : `translate(${imageRect.left + imageRect.width / 2 - window.innerWidth / 2}px, ${imageRect.top + imageRect.height / 2 - window.innerHeight / 2}px)`,
-              opacity: isZooming ? 1 : 0,
-            }}
-          />
-        )}
-      </div>
     </>
   );
 }
@@ -209,7 +162,7 @@ function TimeAgo({ date }: { date: string }) {
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeAgo(getTimeAgo(date));
-    }, 60000); // 每分钟更新一次
+    }, 60000); // Update every minute
 
     return () => clearInterval(timer);
   }, [date]);

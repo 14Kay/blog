@@ -37,7 +37,7 @@ export async function getAllPosts(): Promise<Post[]> {
 					const processedContent = await remark()
 						.use(remarkGfm)
 						.use(remarkMath)
-						.use(remarkRehype)
+						.use(remarkRehype, { allowDangerousHtml: true })
 						.use(rehypeKatex)
 						.use(rehypePrettyCode, {
 							theme: {
@@ -46,7 +46,7 @@ export async function getAllPosts(): Promise<Post[]> {
 							},
 						})
 						.use(rehypeExternalLinks, { target: '_blank', rel: ['noopener', 'noreferrer'] })
-						.use(rehypeStringify)
+						.use(rehypeStringify, { allowDangerousHtml: true })
 						.process(matterResult.content)
 					const content = processedContent.toString()
 

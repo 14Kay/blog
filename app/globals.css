@@ -383,3 +383,16 @@ html.dark .prose pre span {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* Override react-medium-image-zoom styles */
+[data-rmiz-modal-overlay="visible"] {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+[data-rmiz-modal-overlay="hidden"] {
+  background-color: rgba(0, 0, 0, 0) !important;
+  backdrop-filter: blur(0px) !important;
+  -webkit-backdrop-filter: blur(0px) !important;
+}
