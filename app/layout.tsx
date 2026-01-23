@@ -4,6 +4,8 @@ import "./globals.css";
 import "katex/dist/katex.min.css";
 import Header from "@/components/Header";
 import { ThemeProvider } from "@/components/theme-provider";
+import { PlayerProvider } from "@/app/context/PlayerContext";
+import GlobalPlayer from "@/components/GlobalPlayer";
 
 const googleSans = localFont({
 	src: "./fonts/GoogleSans-Regular.ttf",
@@ -48,7 +50,6 @@ export default function RootLayout({
 		<html lang="en" suppressHydrationWarning>
 			<head>
 				<meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
-
 			</head>
 			<body
 				className={`${googleSans.variable} antialiased`}
@@ -59,10 +60,13 @@ export default function RootLayout({
 					enableSystem
 					disableTransitionOnChange
 				>
-					<Header />
-					<main className="pt-[60px]">
-						{children}
-					</main>
+					<PlayerProvider>
+						<Header />
+						<main className="pt-[60px]">
+							{children}
+						</main>
+						<GlobalPlayer />
+					</PlayerProvider>
 				</ThemeProvider>
 			</body>
 		</html>
