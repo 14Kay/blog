@@ -86,7 +86,13 @@ export default function SongList({ songs }: SongListProps) {
                 </div>
               ) : null}
               {/* Overlay for hover or active state */}
-              <div className={`absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity ${playing ? 'opacity-100' : 'opacity-0 hover:opacity-100'}`}>
+              <div
+                className={`absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity ${playing ? 'opacity-100' : 'opacity-0 hover:opacity-100'}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  playSong(song, songs);
+                }}
+              >
                 {playing ? <Pause size={20} className="text-white fill-current" /> : <Play size={20} className="text-white fill-current" />}
               </div>
             </div>
