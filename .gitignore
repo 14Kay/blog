@@ -43,3 +43,5 @@ next-env.d.ts
 /data/.bilibili-cache
 # music cache
 /data/.music-cache
+
+/app/api/posts
