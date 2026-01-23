@@ -53,6 +53,19 @@ export default function Timeline({ posts }: TimelineProps) {
   // HTML Parser configuration to replace <img> with <Zoom> component
   const parseOptions = {
     replace: (domNode: DOMNode) => {
+      if (domNode instanceof Element && domNode.name === 'p') {
+        const hasImg = domNode.children.some(
+          (child) => child instanceof Element && child.name === 'img'
+        );
+        if (hasImg) {
+          const { class: className, ...rest } = domNode.attribs;
+          return (
+            <div className={className} {...rest}>
+              {domToReact(domNode.children as DOMNode[], parseOptions)}
+            </div>
+          );
+        }
+      }
       if (domNode instanceof Element && domNode.name === 'img') {
         const { src, alt, class: className, ...rest } = domNode.attribs;
         return (
