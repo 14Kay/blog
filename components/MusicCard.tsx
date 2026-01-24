@@ -176,6 +176,8 @@ export default function MusicCard({ music }: MusicCardProps) {
 
 		let active = true;
 		let observer: IntersectionObserver | null = null;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
 		audioContextRef.current = ctx;
 

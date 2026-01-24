@@ -1,6 +1,7 @@
 "use client";
 
 import { usePlayer } from "@/app/context/PlayerContext";
+import { usePathname } from "next/navigation";
 import { Pause, Play, SkipBack, SkipForward, Shuffle, Repeat, Volume2, VolumeX, Music, Minimize2, Disc } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,55 @@ export default function GlobalPlayer() {
         audioRef,
         toast
     } = usePlayer();
+
+    const pathname = usePathname();
+    const originalTitleRef = useRef(typeof document !== 'undefined' ? document.title : '');
+
+    // 监听播放状态和歌曲变化，修改标题
+    useEffect(() => {
+        if (!isPlaying || !currentSong) {
+            // 如果暂停或停止，且有保存的原始标题，则恢复
+            if (originalTitleRef.current && document.title !== originalTitleRef.current) {
+                document.title = originalTitleRef.current;
+            }
+            return;
+        }
+
+        // 如果开始播放，保存当前标题（如果当前标题不是播放状态的标题）
+        if (typeof document !== 'undefined' && !document.title.startsWith("🎵")) {
+            originalTitleRef.current = document.title;
+        }
+
+        // 设置播放状态标题
+        document.title = `🎵 正在播放: ${currentSong.name} - ${currentSong.artist}`;
+
+        // 清理函数：当组件卸载或依赖变化导致重运行前（例如暂停时），恢复标题
+        // 注意：这里我们只在 isPlaying 变为 false 时依靠上面的 if 逻辑恢复，
+        // 或者依靠 effect 的 cleanup。但由于依赖了 currentSong，切歌时也会触发 cleanup。
+        return () => {
+            if (originalTitleRef.current) {
+                document.title = originalTitleRef.current;
+            }
+        };
+    }, [isPlaying, currentSong]);
+
+    // 监听路由变化，确保导航后标题仍正确
+    useEffect(() => {
+        if (!isPlaying || !currentSong) return;
+
+        // 路由切换时，Next.js 会更新标题。我们需要在它更新后再次覆盖。
+        // 使用 setTimeout 确保在 Next.js Head 更新后执行
+        const timer = setTimeout(() => {
+            // 此时 document.title 应该是新页面的标题，更新我们的“原始标题”引用
+            if (!document.title.startsWith("🎵")) {
+                originalTitleRef.current = document.title;
+            }
+            // 重新应用播放标题
+            document.title = `🎵 正在播放: ${currentSong.name} - ${currentSong.artist}`;
+        }, 100);
+
+        return () => clearTimeout(timer);
+    }, [pathname, isPlaying, currentSong]);
 
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -55,6 +105,7 @@ export default function GlobalPlayer() {
 
     // Sync local volume when global volume changes
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         setLocalVolume(volume);
         if (volume > 0) lastVolumeRef.current = volume;
     }, [volume]);

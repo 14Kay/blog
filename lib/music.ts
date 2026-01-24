@@ -27,7 +27,7 @@ async function extractColorsFromImage(imageUrl: string): Promise<{ bgGradient: s
 
 		// Use sharp to process image (if available)
 		try {
-			const sharp = require('sharp')
+			const { default: sharp } = await import('sharp')
 			const { data, info } = await sharp(buffer)
 				.resize(100, 100, { fit: 'cover' })
 				.raw()

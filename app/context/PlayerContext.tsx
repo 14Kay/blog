@@ -43,6 +43,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const savedVolume = localStorage.getItem("musicVolume");
         if (savedVolume !== null) {
+            // eslint-disable-next-line react-hooks/exhaustive-deps
             setVolume(parseFloat(savedVolume));
         }
     }, []);

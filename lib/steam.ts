@@ -7,6 +7,21 @@ const PROXY_URL = process.env.STEAM_PROXY || process.env.HTTPS_PROXY; // Only us
 import { fetch, ProxyAgent } from 'undici';
 import { SteamGame, SteamProfile } from './steam-types';
 
+interface SteamUserResponse {
+    response: {
+        players: {
+            player: SteamProfile[];
+        };
+    };
+}
+
+interface SteamGamesResponse {
+    response: {
+        game_count: number;
+        games: SteamGame[];
+    };
+}
+
 const dispatcher = PROXY_URL ? new ProxyAgent(PROXY_URL) : undefined;
 
 export async function getSteamProfile(): Promise<SteamProfile | null> {
@@ -19,7 +34,7 @@ export async function getSteamProfile(): Promise<SteamProfile | null> {
                 dispatcher
             }
         );
-        const data = await response.json() as any;
+        const data = await response.json() as SteamUserResponse;
         return data.response.players.player[0] || null;
     } catch (error) {
         console.error('Error fetching Steam profile:', error);
@@ -35,7 +50,7 @@ export async function getOwnedGames(): Promise<SteamGame[]> {
             `https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${STEAM_API_KEY}&steamid=${STEAM_ID}&include_appinfo=1&include_played_free_games=1&format=json`,
             { dispatcher }
         );
-        const data = await response.json() as any;
+        const data = await response.json() as SteamGamesResponse;
         return data.response.games || [];
     } catch (error) {
         console.error('Error fetching owned games:', error);
@@ -51,7 +66,7 @@ export async function getRecentlyPlayedGames(): Promise<SteamGame[]> {
             `https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?key=${STEAM_API_KEY}&steamid=${STEAM_ID}&format=json`,
             { dispatcher }
         );
-        const data = await response.json() as any;
+        const data = await response.json() as SteamGamesResponse;
         return data.response.games || [];
     } catch (error) {
         console.error('Error fetching recent games:', error);
