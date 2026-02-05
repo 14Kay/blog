@@ -18,9 +18,17 @@ export function getAllSongs(): Song[] {
     const lines = content.trim().split('\n').slice(1);
 
     return lines.map(line => {
-      // CSV format: 歌曲名,艺术家,专辑名,id,歌曲来源名称,封面,时长
-      // Handle potential commas in fields (naive implementation, assuming no commas in fields based on sample)
-      const [name, artist, album, id, source, cover, duration] = line.split(',');
+      // Regex to split by comma ONLY if not inside quotes
+      const fields = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+
+      const [name, artist, album, id, source, cover, duration] = fields.map(field => {
+        // Remove surrounding quotes if present
+        if (field.startsWith('"') && field.endsWith('"')) {
+          return field.slice(1, -1);
+        }
+        return field;
+      });
+
       return {
         name,
         artist,
