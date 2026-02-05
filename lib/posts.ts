@@ -10,7 +10,7 @@ import rehypePrettyCode from 'rehype-pretty-code'
 import rehypeStringify from 'rehype-stringify'
 import rehypeExternalLinks from 'rehype-external-links'
 import { getBilibiliVideoInfo, type BilibiliVideoData } from './bilibili'
-import { getMusicInfo, type MusicData } from './music'
+import { getAllSongs, type Song } from './songs'
 
 export interface Post {
 	id: string
@@ -18,13 +18,14 @@ export interface Post {
 	edited?: string
 	content: string
 	bilibiliVideo?: BilibiliVideoData
-	music?: MusicData
+	music?: Song
 }
 
 const postsDirectory = path.join(process.cwd(), 'data')
 
 export async function getAllPosts(): Promise<Post[]> {
 	try {
+		const allSongs = getAllSongs();
 		const fileNames = fs.readdirSync(postsDirectory)
 		const allPostsData = await Promise.all(
 			fileNames
@@ -56,10 +57,14 @@ export async function getAllPosts(): Promise<Post[]> {
 						bilibiliVideo = await getBilibiliVideoInfo(matterResult.data.bvid) || undefined
 					}
 
-					// 处理音乐
-					let music: MusicData | undefined
-					if (matterResult.data.music && matterResult.data.source) {
-						music = await getMusicInfo(matterResult.data.music, matterResult.data.source) || undefined
+					// 处理音乐 (Local Lookup)
+					let music: Song | undefined
+					if (matterResult.data.music) {
+						// Try to find by name, matching source if provided
+						music = allSongs.find(s =>
+							s.name === matterResult.data.music &&
+							(!matterResult.data.source || s.source === matterResult.data.source)
+						);
 					}
 
 					return {

@@ -3,8 +3,8 @@
 import { usePlayer } from "@/app/context/PlayerContext";
 import { usePathname } from "next/navigation";
 import { Pause, Play, SkipBack, SkipForward, Shuffle, Repeat, Volume2, VolumeX, Music, Minimize2, Disc } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
-import { cn } from "@/lib/utils";
+import { useEffect, useState, useRef, useMemo } from "react";
+import { cn, getSongUrl } from "@/lib/utils";
 
 // Helper to format time
 const formatTime = (seconds: number) => {
@@ -137,6 +137,142 @@ export default function GlobalPlayer() {
         }
     };
 
+    // --- Audio Waveform Logic ---
+    const [frequencyData, setFrequencyData] = useState<Uint8Array>(new Uint8Array(100).fill(10)); // 100 bars for global player
+    const audioContextRef = useRef<AudioContext | null>(null);
+
+    useEffect(() => {
+        if (!currentSong) return;
+
+        let active = true;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioContextRef.current = ctx;
+
+        const url = getSongUrl(currentSong);
+        if (!url) return;
+
+        const generateWaveform = async () => {
+            try {
+                // Check localStorage cache
+                const cacheKey = `waveform_v8_${url}`;
+                const cached = localStorage.getItem(cacheKey);
+
+                if (cached) {
+                    try {
+                        const cachedData = JSON.parse(cached);
+                        if (active) {
+                            setFrequencyData(new Uint8Array(cachedData));
+                            return;
+                        }
+                    } catch (e) {
+                        localStorage.removeItem(cacheKey);
+                    }
+                }
+
+                // Fetch audio
+                try {
+                    const headResponse = await fetch(url, { method: 'HEAD', redirect: 'follow' });
+                    let finalUrl = headResponse.url;
+                    if (finalUrl.startsWith('http://')) finalUrl = finalUrl.replace('http://', 'https://');
+
+                    const response = await fetch(finalUrl);
+                    const arrayBuffer = await response.arrayBuffer();
+
+                    if (!active) return;
+
+                    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+                    const channelData = audioBuffer.getChannelData(0);
+                    const bars = 100; // Adjusted for player width
+                    const step = Math.ceil(channelData.length / bars);
+                    const rawData = new Float32Array(bars);
+
+                    let maxRms = 0;
+                    let minRms = Infinity;
+
+                    for (let i = 0; i < bars; i++) {
+                        let sum = 0;
+                        const start = i * step;
+                        const end = Math.min(start + step, channelData.length);
+                        const len = end - start;
+
+                        if (len > 0) {
+                            for (let j = start; j < end; j++) {
+                                sum += channelData[j] * channelData[j];
+                            }
+                            const rms = Math.sqrt(sum / len);
+                            rawData[i] = rms;
+                            if (rms > maxRms) maxRms = rms;
+                            if (rms < minRms) minRms = rms;
+                        }
+                    }
+
+                    // Prevent infinite min/max issues
+                    if (minRms === Infinity) minRms = 0;
+                    if (maxRms === 0) maxRms = 1;
+
+                    // Calculate range, ensuring it's not zero
+                    // We lift the floor slightly (minRms * 1.1) to crush noise/silence to visual zero
+                    const effectiveMin = minRms * 1.1;
+                    const range = maxRms - effectiveMin;
+
+                    const tempBars = new Float32Array(bars);
+                    for (let i = 0; i < bars; i++) {
+                        // Normalize to 0-1 range based on the song's actual dynamic range
+                        let normalized = (rawData[i] - effectiveMin) / (range || 1);
+                        normalized = Math.max(0, Math.min(1, normalized)); // Clamp
+
+                        // Aggressive power curve to accentuate beats
+                        const exaggerated = Math.pow(normalized, 3.0);
+                        tempBars[i] = exaggerated * 255;
+                    }
+
+                    const newData = new Uint8Array(bars);
+                    for (let i = 0; i < bars; i++) {
+                        const prev = tempBars[i - 1] || tempBars[i];
+                        const curr = tempBars[i];
+                        const next = tempBars[i + 1] || tempBars[i];
+                        const smoothed = prev * 0.15 + curr * 0.7 + next * 0.15;
+                        newData[i] = Math.max(3, Math.floor(smoothed));
+                    }
+
+                    if (active) {
+                        setFrequencyData(newData);
+                        try {
+                            localStorage.setItem(cacheKey, JSON.stringify(Array.from(newData)));
+                        } catch (e) {
+                            console.warn('Failed to cache waveform:', e);
+                        }
+                    }
+                } catch (err) {
+                    console.error("Failed to generate waveform:", err);
+                    if (active) {
+                        setFrequencyData(new Uint8Array(100).map(() => Math.random() * 100)); // Fallback
+                    }
+                }
+            } catch (err) {
+                console.error("Audio Context Error:", err);
+            }
+        };
+
+        generateWaveform();
+
+        return () => {
+            active = false;
+            if (audioContextRef.current?.state !== 'closed') {
+                audioContextRef.current?.close();
+            }
+        };
+    }, [currentSong]); // Re-run when song changes
+
+    const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!audioRef.current) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const percent = (e.clientX - rect.left) / rect.width;
+        audioRef.current.currentTime = percent * duration;
+        setCurrentTime(percent * duration);
+    };
+
     // Debounce ref for volume updates
     const volumeDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -228,17 +364,29 @@ export default function GlobalPlayer() {
                             <span className="text-[10px] text-gray-500 dark:text-white/50 font-mono tracking-wider">{formatTime(currentTime)}</span>
                             <span className="text-[10px] text-gray-500 dark:text-white/50 font-mono tracking-wider">-{formatTime(duration - currentTime)}</span>
                         </div>
-                        <div className="relative h-1 w-full bg-gray-300/50 dark:bg-white/10 rounded-full overflow-hidden cursor-pointer group/progress">
-                            <input
-                                type="range"
-                                min="0"
-                                max={duration || 100}
-                                value={currentTime}
-                                onChange={handleSeek}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                            />
-                            <div className="absolute top-0 left-0 h-full bg-gray-900 dark:bg-white/90 rounded-full transition-all duration-100 ease-linear shadow-sm" style={{ width: `${progress}%` }} />
-                            <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-gray-900 dark:bg-white rounded-full shadow-md opacity-0 transition-opacity duration-200 pointer-events-none z-0 group-hover/progress:opacity-100" style={{ left: `${progress}%`, marginLeft: '-6px' }} />
+                        <div className="relative h-4 w-full cursor-pointer group/progress touch-none" onClick={handleProgressClick}>
+                            <div className="flex items-center justify-center gap-[2px] h-full w-full">
+                                {Array.from({ length: 100 }).map((_, i) => {
+                                    const progressPercent = duration ? (currentTime / duration) : 0;
+                                    const barProgress = i / 100;
+                                    const isPlayed = barProgress < progressPercent;
+                                    const value = frequencyData[i] || 10;
+                                    const heightPercent = Math.max(5, (value / 255) * 100);
+
+                                    return (
+                                        <div
+                                            key={i}
+                                            className={cn(
+                                                "w-0.5 rounded-full transition-all duration-75",
+                                                isPlayed ? "bg-gray-900 dark:bg-white" : "bg-gray-300 dark:bg-white/20"
+                                            )}
+                                            style={{
+                                                height: `${heightPercent}%`,
+                                            }}
+                                        />
+                                    )
+                                })}
+                            </div>
                         </div>
                     </div>
 

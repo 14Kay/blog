@@ -1,12 +1,14 @@
 'use client'
 
 import { Music, Play, Pause, Volume2 } from 'lucide-react'
-import { MusicData } from '@/lib/music'
-import { useRef, useState, useEffect, useMemo } from 'react'
+import { Song } from '@/lib/songs'
+import { getSongUrl } from '@/lib/utils'
+import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
+import { usePlayer } from '@/app/context/PlayerContext'
 
 interface MusicCardProps {
-	music: MusicData
+	music: Song
 }
 
 interface LyricLine {
@@ -16,67 +18,73 @@ interface LyricLine {
 
 function parseLyrics(lrc?: string): LyricLine[] {
 	if (!lrc) return []
-	const lines = lrc.split('\n')
-	const parsed: LyricLine[] = []
-
-	for (const line of lines) {
-		const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/)
+	return lrc.split('\n').reduce((acc, line) => {
+		const match = line.match(/^\[(\d{2}):(\d{2}\.\d{2,})\](.*)/)
 		if (match) {
 			const minutes = parseInt(match[1])
-			const seconds = parseInt(match[2])
-			const ms = parseInt(match[3].padEnd(3, '0'))
-			const time = minutes * 60 + seconds + ms / 1000
-			const text = match[4].trim()
-			if (text) parsed.push({ time, text })
+			const seconds = parseFloat(match[2])
+			acc.push({
+				time: minutes * 60 + seconds,
+				text: match[3].trim()
+			})
 		}
-	}
-	return parsed
+		return acc
+	}, [] as LyricLine[])
 }
 
 export default function MusicCard({ music }: MusicCardProps) {
-	const audioRef = useRef<HTMLAudioElement>(null)
-	const [isPlaying, setIsPlaying] = useState(false)
+	const {
+		playSong,
+		currentSong,
+		isPlaying: globalIsPlaying,
+		volume: globalVolume,
+		setVolume: setGlobalVolume,
+		audioRef
+	} = usePlayer()
+
+	const isCurrentSong = currentSong?.id === music.id
+	const isPlaying = isCurrentSong && globalIsPlaying
+
 	const [currentTime, setCurrentTime] = useState(0)
 	const [duration, setDuration] = useState(0)
-	const [volume, setVolume] = useState(() => {
-		// Load volume from localStorage, default to 0.3
-		if (typeof window !== 'undefined') {
-			const saved = localStorage.getItem('musicVolume')
-			return saved ? parseFloat(saved) : 0.3
-		}
-		return 0.3
-	})
+	// Use global volume if available, otherwise default
+	const volume = globalVolume
 
 	const [frequencyData, setFrequencyData] = useState<Uint8Array>(new Uint8Array(40).fill(10))
 	const audioContextRef = useRef<AudioContext | null>(null)
 	const [bgGradient, setBgGradient] = useState<string>('linear-gradient(135deg, #667eea 0%, #764ba2 100%)')
 	const [textColor, setTextColor] = useState<string>('text-white')
 
-	const lyrics = useMemo(() => parseLyrics(music.lyrics), [music.lyrics])
-
-	// Save volume to localStorage when it changes
+	// Sync progress with Global Player
 	useEffect(() => {
-		localStorage.setItem('musicVolume', volume.toString())
-	}, [volume])
-
-	const currentLyricIndex = useMemo(() => {
-		return lyrics.findIndex((line, i) => {
-			const nextLine = lyrics[i + 1]
-			return currentTime >= line.time && (!nextLine || currentTime < nextLine.time)
-		})
-	}, [currentTime, lyrics])
-
-	// Extract colors from cover image
-	useEffect(() => {
-		// Use cached colors if available (from server-side extraction)
-		if (music.bgGradient && music.textColor) {
-			setBgGradient(music.bgGradient)
-			setTextColor(music.textColor)
+		if (!isCurrentSong || !audioRef.current) {
+			setCurrentTime(0)
+			setDuration(0)
 			return
 		}
 
-		// Fallback: try client-side extraction (may fail due to CORS)
-		if (!music.pic) {
+		const audio = audioRef.current
+
+		const updateState = () => {
+			setCurrentTime(audio.currentTime)
+			setDuration(audio.duration || 0)
+		}
+
+		// Initial sync
+		updateState()
+
+		audio.addEventListener('timeupdate', updateState)
+		audio.addEventListener('loadedmetadata', updateState)
+
+		return () => {
+			audio.removeEventListener('timeupdate', updateState)
+			audio.removeEventListener('loadedmetadata', updateState)
+		}
+	}, [isCurrentSong, audioRef, music.id]) // Re-bind if song changes
+
+	// Extract colors from cover image
+	useEffect(() => {
+		if (!music.cover) {
 			setBgGradient('linear-gradient(135deg, #667eea 0%, #764ba2 100%)')
 			setTextColor('text-white')
 			return
@@ -84,7 +92,7 @@ export default function MusicCard({ music }: MusicCardProps) {
 
 		const img = document.createElement('img') as HTMLImageElement
 		img.crossOrigin = 'anonymous'
-		img.src = music.pic
+		img.src = music.cover
 
 		img.onload = () => {
 			try {
@@ -168,32 +176,23 @@ export default function MusicCard({ music }: MusicCardProps) {
 			setBgGradient('linear-gradient(135deg, #667eea 0%, #764ba2 100%)')
 			setTextColor('text-white')
 		}
-	}, [music.pic, music.bgGradient, music.textColor])
+	}, [music.cover])
 
 	// Generate static waveform for the whole song
 	useEffect(() => {
-		if (!music.url) return
+		const url = getSongUrl(music);
+		if (!url) return
 
 		let active = true;
 		let observer: IntersectionObserver | null = null;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
 		audioContextRef.current = ctx;
 
 		const generateWaveform = async () => {
 			try {
-				// Use server-generated waveform if available
-				if (music.waveform && music.waveform.length > 0) {
-					if (active) {
-						setFrequencyData(new Uint8Array(music.waveform));
-						console.log('Loaded waveform from server cache');
-						return;
-					}
-				}
-
 				// Check localStorage cache
-				const cacheKey = `waveform_v3_${music.url}`;
+				const cacheKey = `waveform_v3_${url}`;
 				const cached = localStorage.getItem(cacheKey);
 
 				if (cached) {
@@ -214,7 +213,7 @@ export default function MusicCard({ music }: MusicCardProps) {
 				// First, get the final URL after redirects, then upgrade to HTTPS
 				try {
 					// Use HEAD request to follow redirects without downloading
-					const headResponse = await fetch(music.url, {
+					const headResponse = await fetch(url, {
 						method: 'HEAD',
 						redirect: 'follow'
 					});
@@ -319,7 +318,7 @@ export default function MusicCard({ music }: MusicCardProps) {
 		};
 
 		const initObserver = () => {
-			const element = document.getElementById(`music-card-${music.id || music.url}`);
+			const element = document.getElementById(`music-card-${music.id}`);
 			if (element) {
 				observer = new IntersectionObserver((entries) => {
 					if (entries[0].isIntersecting) {
@@ -344,38 +343,7 @@ export default function MusicCard({ music }: MusicCardProps) {
 			}
 			observer?.disconnect();
 		}
-	}, [music.url, music.waveform, music.id])
-
-	useEffect(() => {
-		if (!audioRef.current) return
-		audioRef.current.volume = volume
-	}, [volume])
-
-	useEffect(() => {
-		const audio = audioRef.current
-		if (!audio) return
-
-		const updateTime = () => setCurrentTime(audio.currentTime)
-		const updateDuration = () => setDuration(audio.duration)
-
-		audio.addEventListener('timeupdate', updateTime)
-		audio.addEventListener('loadedmetadata', updateDuration)
-
-		return () => {
-			audio.removeEventListener('timeupdate', updateTime)
-			audio.removeEventListener('loadedmetadata', updateDuration)
-		}
-	}, [])
-
-	const togglePlay = () => {
-		if (!audioRef.current) return
-		if (isPlaying) {
-			audioRef.current.pause()
-		} else {
-			audioRef.current.play()
-		}
-		setIsPlaying(!isPlaying)
-	}
+	}, [music])
 
 	const formatTime = (time: number) => {
 		const mins = Math.floor(time / 60)
@@ -383,16 +351,9 @@ export default function MusicCard({ music }: MusicCardProps) {
 		return `${mins}:${secs.toString().padStart(2, '0')}`
 	}
 
-	const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-		if (!audioRef.current) return
-		const rect = e.currentTarget.getBoundingClientRect()
-		const percent = (e.clientX - rect.left) / rect.width
-		audioRef.current.currentTime = percent * duration
-	}
-
 	return (
 		<div
-			id={`music-card-${music.id || music.url}`}
+			id={`music-card-${music.id}`}
 			className="w-full max-w-[250px] mx-0 backdrop-blur-md rounded-[1rem] p-4 overflow-hidden"
 			style={{ background: bgGradient }}
 		>
@@ -405,13 +366,14 @@ export default function MusicCard({ music }: MusicCardProps) {
 						e.stopPropagation()
 						return
 					}
-					togglePlay()
+					// Toggle play via global context
+					playSong(music)
 				}}
 			>
-				{music.pic ? (
+				{music.cover ? (
 					<Image
-						src={music.pic}
-						alt={music.title}
+						src={music.cover}
+						alt={music.name}
 						fill
 						className="object-cover transition-transform duration-700 group-hover:scale-110"
 						unoptimized
@@ -451,7 +413,7 @@ export default function MusicCard({ music }: MusicCardProps) {
 							max="1"
 							step="0.01"
 							value={volume}
-							onChange={(e) => setVolume(parseFloat(e.target.value))}
+							onChange={(e) => setGlobalVolume(parseFloat(e.target.value))}
 							onClick={(e) => e.stopPropagation()}
 							className="flex-1 h-1 bg-white/30 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
 						/>
@@ -462,7 +424,7 @@ export default function MusicCard({ music }: MusicCardProps) {
 			{/* Info Area - Left Aligned */}
 			<div className="mt-4 text-center space-y-1">
 				<h3 className={`text-lg font-bold ${textColor} tracking-tight truncate px-1`}>
-					{music.title}
+					{music.name}
 				</h3>
 				<p className={`text-xs ${textColor} opacity-70 font-medium truncate px-1`}>
 					{music.artist}
@@ -479,7 +441,12 @@ export default function MusicCard({ music }: MusicCardProps) {
 				{/* Interactive Waveform */}
 				<div
 					className="w-full flex items-center justify-center gap-[1.8px] h-8 cursor-pointer group select-none touch-none"
-					onClick={handleProgressClick}
+					onClick={(e) => {
+						if (!isCurrentSong || !audioRef.current) return;
+						const rect = e.currentTarget.getBoundingClientRect();
+						const percent = (e.clientX - rect.left) / rect.width;
+						audioRef.current.currentTime = percent * duration;
+					}}
 				>
 					{Array.from({ length: 40 }).map((_, i) => {
 						const progress = duration ? (currentTime / duration) : 0;
@@ -509,22 +476,6 @@ export default function MusicCard({ music }: MusicCardProps) {
 					{formatTime(duration)}
 				</span>
 			</div>
-
-			{/* Lyrics */}
-			{lyrics.length > 0 && currentLyricIndex >= 0 && (
-				<div className="mt-2 h-5 flex items-center justify-center overflow-hidden">
-					<p className={`text-xs ${textColor} opacity-80 font-medium animate-fade-in-up truncate w-full text-center ml-1`}>
-						{lyrics[currentLyricIndex].text}
-					</p>
-				</div>
-			)}
-
-			<audio
-				ref={audioRef}
-				src={music.url}
-				crossOrigin="anonymous"
-				onEnded={() => setIsPlaying(false)}
-			/>
 		</div>
 	)
 }
