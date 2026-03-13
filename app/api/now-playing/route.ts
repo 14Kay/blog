@@ -32,4 +32,3 @@ export async function GET() {
 
 	return NextResponse.json({ ...track, matchedSong: matched ?? null }, { headers: NO_CACHE_HEADERS })
 }
-}
