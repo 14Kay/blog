@@ -36,7 +36,7 @@ function AvatarWithNowPlaying() {
 
 		async function fetchNowPlaying() {
 			try {
-				const res = await fetch('/api/now-playing')
+				const res = await fetch('/api/now-playing', { cache: 'no-store' })
 				const data = await res.json()
 				if (!cancelled) setTrack(data?.isNowPlaying ? data : null)
 			} catch {

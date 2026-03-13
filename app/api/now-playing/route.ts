@@ -10,7 +10,7 @@ function normalize(str: string) {
 
 export async function GET() {
 	const track = await getNowPlaying()
-	if (!track) return NextResponse.json(null)
+	if (!track) return NextResponse.json(null, { headers: { 'Cache-Control': 'no-store, max-age=0' } })
 
 	const songs = getAllSongs()
 	const trackName = normalize(track.name)
@@ -24,5 +24,7 @@ export async function GET() {
 			(songName.includes(trackName) && songArtist.includes(trackArtist))
 	})
 
-	return NextResponse.json({ ...track, matchedSong: matched ?? null })
+	return NextResponse.json({ ...track, matchedSong: matched ?? null }, {
+		headers: { 'Cache-Control': 'no-store, max-age=0' }
+	})
 }
