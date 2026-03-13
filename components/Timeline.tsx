@@ -170,15 +170,16 @@ export default function Timeline({ posts }: TimelineProps) {
 }
 
 function TimeAgo({ date }: { date: string }) {
-  const [timeAgo, setTimeAgo] = useState(getTimeAgo(date));
+  const [timeAgo, setTimeAgo] = useState<string | null>(null)
 
   useEffect(() => {
+    setTimeAgo(getTimeAgo(date))
     const timer = setInterval(() => {
       setTimeAgo(getTimeAgo(date));
-    }, 60000); // Update every minute
+    }, 60000);
 
     return () => clearInterval(timer);
   }, [date]);
 
-  return <span suppressHydrationWarning>{timeAgo}</span>;
+  return <span suppressHydrationWarning>{timeAgo ?? '...'}</span>;
 }
